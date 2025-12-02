@@ -73,7 +73,7 @@ const labelSumOut = document.querySelector('.summary__value--out');
 const labelSumInterest = document.querySelector('.summary__value--interest');
 const labelTimer = document.querySelector('.timer');
 
-const containerApp = document.querySelector('.app');
+const app = document.querySelector('.app');
 const containerMovements = document.querySelector('.movements');
 
 const btnLogin = document.querySelector('.login__btn');
@@ -103,3 +103,33 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
+
+
+// STEP 1 — Create a helper function to find a user by username
+const findAccount = username => accounts.find(acc => acc.username === username)
+
+
+// STEP 2 — Add login event listener
+
+btnLogin.addEventListener("click", function (e) {
+  e.preventDefault();
+  const username = inputLoginUsername.value
+  const pin = Number(inputLoginPin.value)
+  if (!username) return
+
+  const account = findAccount(username)
+
+  if (account?.pin === pin) {
+    labelWelcome.textContent = `Welcome back, ${account.owner}`
+    state.currentUser = account
+
+    app.style.opacity = 1
+
+    inputLoginUsername.value = inputLoginPin.value = ""
+    inputLoginPin.blur()
+
+
+
+  }
+
+})
