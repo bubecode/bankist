@@ -74,7 +74,7 @@ const labelSumInterest = document.querySelector('.summary__value--interest');
 const labelTimer = document.querySelector('.timer');
 
 const app = document.querySelector('.app');
-const containerMovements = document.querySelector('.movements');
+const movementsContainer = document.querySelector('.movements');
 
 const btnLogin = document.querySelector('.login__btn');
 const btnTransfer = document.querySelector('.form__btn--transfer');
@@ -127,9 +127,80 @@ btnLogin.addEventListener("click", function (e) {
 
     inputLoginUsername.value = inputLoginPin.value = ""
     inputLoginPin.blur()
-
-
+    updateUI(account)
 
   }
 
 })
+
+
+function displayMovements(account) {
+  // 1. clear container
+  movementsContainer.innerHTML = "";
+  // 2. loop through movements
+  const movements = account.movements
+  movements.forEach(function (value, i) {
+    // 3. determine type: deposit or withdrawal
+    const type = value > 0 ? "deposit" : "withdrawal"
+
+    // 4. format the value
+    const formatted = formatCurrency(value, account.locale, account.currency)
+    const date = formatDate(account.movementsDates[i], account.locale)
+
+
+    // 5. generate HTML
+
+    const html = `
+          <div class="movements__row">
+            <div class="movements__type movements__type--${type}">
+              ${i + 1} ${type}
+            </div>
+            <div class="movements__date">${date}</div>
+            <div class="movements__value">${formatted}</div>
+          </div>
+        `;
+
+    // 6. insert HTML into the container
+    movementsContainer.insertAdjacentHTML("afterbegin", html);
+
+
+
+
+  })
+
+}
+
+function calcDisplayBalance(account) {
+  // 1. calculate balance
+  const totalAmount = account.movements.reduce((acc, curr) => acc + curr, 0)
+  const format_amount = formatCurrency(totalAmount, account.locale, account.currency)
+
+  // 2. set account.balance
+  account.balance = totalAmount;  // 3. update labelBalance.textContent
+  labelBalance.textContent = format_amount
+}
+
+
+function calcDisplaySummary(account) {
+  // 1. calculate incomes
+  const income = account.movements.filter(acc => acc > 0).reduce((acc, curr) => acc + curr, 0)
+
+  // 2. calculate out (absolute values)
+  const out = Math.abs(account.movements.filter(acc => acc < 0).reduce((acc, curr) => acc + curr, 0))
+
+  // 3. calculate interest (only on deposits)
+  const interest = account.movements.filter(acc => acc > 0).map(deposit => (deposit * account.interestRate) / 100).filter(int => int >= 1).reduce((acc, cur) => acc + cur, 0)
+
+  // 4. update labelSummaryIn
+  labelSumIn.textContent = formatCurrency(income, account.locale, account.currency)
+  // 5. update labelSummaryOut
+  labelSumOut.textContent = formatCurrency(out, account.locale, account.currency)
+  // 6. update labelSummaryInterest
+  labelSumInterest.textContent = formatCurrency(interest, account.locale, account.currency)
+}
+
+function updateUI(account) {
+  displayMovements(account)
+  calcDisplayBalance(account)
+  calcDisplaySummary(account)
+}
