@@ -90,6 +90,7 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -109,6 +110,8 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 const findAccount = username => accounts.find(acc => acc.username === username)
 
 
+let currentAccount;
+
 // STEP 2 — Add login event listener
 
 btnLogin.addEventListener("click", function (e) {
@@ -117,17 +120,17 @@ btnLogin.addEventListener("click", function (e) {
   const pin = Number(inputLoginPin.value)
   if (!username) return
 
-  const account = findAccount(username)
+  currentAccount = findAccount(username)
 
-  if (account?.pin === pin) {
-    labelWelcome.textContent = `Welcome back, ${account.owner}`
-    state.currentUser = account
+  if (currentAccount?.pin === pin) {
+    labelWelcome.textContent = `Welcome back, ${currentAccount.owner}`
+    state.currentUser = currentAccount
 
     app.style.opacity = 1
 
     inputLoginUsername.value = inputLoginPin.value = ""
     inputLoginPin.blur()
-    updateUI(account)
+    updateUI(currentAccount)
 
   }
 
@@ -199,8 +202,47 @@ function calcDisplaySummary(account) {
   labelSumInterest.textContent = formatCurrency(interest, account.locale, account.currency)
 }
 
+// STEP 3 — UI update function
 function updateUI(account) {
   displayMovements(account)
   calcDisplayBalance(account)
   calcDisplaySummary(account)
 }
+
+// STEP 4 — PART A: Transfer event listener skeleton
+btnTransfer.addEventListener("click", function (e) {
+
+  e.preventDefault();
+
+  // 1. read amount and receiver username
+  const amount = Number(inputTransferAmount.value)
+
+  // 2. find receiver account
+  const receiverAcc = findAccount(inputTransferTo.value)
+  // 3. validate:
+  //    - amount > 0
+  //    - receiver exists
+  //    - receiver !== current user
+  //    - currentUser.balance >= amount
+  if (amount > 0 &&
+    receiverAcc &&
+    currentAccount.balance >= amount &&
+    receiverAcc?.username !== state.username
+  ) {
+    // 4. transfer logic:
+    //    - subtract from currentUser.movements
+    currentAccount.movements.push(-amount)
+    //    - add to receiver.movements
+    receiverAcc.movements.push(amount)
+    //    - add dates to both accounts
+    state.currentUser.movementsDates.push(new Date().toISOString());
+    receiverAcc.movementsDates.push(new Date().toISOString());
+
+    // 5. updateUI(state.currentUser)
+
+    updateUI(state.currentUser)
+    // 6. Clear fields
+    inputTransferAmount.value = inputTransferTo.value = "";
+    inputTransferAmount.blur();
+  }
+})
