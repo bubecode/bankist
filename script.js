@@ -246,3 +246,26 @@ btnTransfer.addEventListener("click", function (e) {
     inputTransferAmount.blur();
   }
 })
+
+
+btnLoan.addEventListener("click", function (e) {
+  e.preventDefault();
+
+  // 1. read amount
+  const loadAmount = Math.floor(inputLoanAmount.value)
+  // 2. validate loan rules
+  if (loadAmount > 0 &&
+    state.currentUser.movements.some(mov => mov >= loadAmount * 0.1)
+  ) {
+    // 3. push loan movement
+    state.currentUser.movements.push(loadAmount)
+    // 4. add date
+    state.currentUser.movementsDates.push(new Date().toISOString());
+
+    // 5. update UI
+    updateUI(state.currentUser)
+    // 6. clear input
+    inputLoanAmount.value = ""
+    inputLoanAmount.blur()
+  }
+});
